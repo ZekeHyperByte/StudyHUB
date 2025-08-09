@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
+import AuthStatus from "./auth-status";
 
 const tools = [
   { name: "File Converter", href: "/tools/converter" },
@@ -41,7 +42,8 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="mt-auto">
+      <div className="mt-auto space-y-2">
+        <AuthStatus />
         <ThemeToggle />
       </div>
     </aside>
