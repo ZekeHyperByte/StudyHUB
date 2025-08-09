@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/redis";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,41 +21,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
         return NextResponse.json(
-            { error: "OpenAI API key is not configured." },
+            { error: "Gemini API key is not configured." },
             { status: 500 }
         );
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
-    const sourceLanguage = sourceLang === 'auto' ? 'auto-detect' : sourceLang;
+    const sourceLanguage = sourceLang === 'auto' ? 'auto-detect the language of the following text' : `translate from ${sourceLang}`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a helpful assistant designed to translate text. Translate the user's text from ${sourceLanguage} to ${targetLang}.`,
-        },
-        {
-          role: "user",
-          content: text,
-        },
-      ],
-    });
+    const prompt = `Translate the following text to ${targetLang}. The input text is in ${sourceLanguage}:\n\n${text}`;
 
-    const translatedText = completion.choices[0]?.message?.content;
-
-    if (!translatedText) {
-        return NextResponse.json(
-            { error: "Failed to get a response from the AI." },
-            { status: 500 }
-        );
-    }
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const translatedText = response.text();
 
     return NextResponse.json({
       success: true,

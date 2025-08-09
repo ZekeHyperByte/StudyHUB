@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/redis";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,39 +18,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No text provided." }, { status: 400 });
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
         return NextResponse.json(
-            { error: "OpenAI API key is not configured." },
+            { error: "Gemini API key is not configured." },
             { status: 500 }
         );
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant designed to paraphrase text. Rewrite the user's text to improve clarity, change the tone, or alter the structure, while preserving the original meaning.",
-        },
-        {
-          role: "user",
-          content: text,
-        },
-      ],
-    });
+    const prompt = `Paraphrase the following text. Rewrite it to improve clarity, change the tone, or alter the structure, while preserving the original meaning:\n\n${text}`;
 
-    const paraphrasedText = completion.choices[0]?.message?.content;
-
-    if (!paraphrasedText) {
-        return NextResponse.json(
-            { error: "Failed to get a response from the AI." },
-            { status: 500 }
-        );
-    }
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const paraphrasedText = response.text();
 
     return NextResponse.json({
       success: true,
