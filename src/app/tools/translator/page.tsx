@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight, Languages } from "lucide-react";
+import { ArrowRight, Languages, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function TranslatorPage() {
   const [inputText, setInputText] = useState("");
@@ -28,7 +29,10 @@ export default function TranslatorPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTranslate = async () => {
-    if (!inputText) return;
+    if (!inputText) {
+      toast.error("Please enter some text to translate.");
+      return;
+    }
     setIsLoading(true);
     setOutputText("");
 
@@ -48,11 +52,12 @@ export default function TranslatorPage() {
       }
 
       setOutputText(data.translatedText);
+      toast.success("Text translated successfully!");
     } catch (err) {
       if (err instanceof Error) {
-        setOutputText(`Error: ${err.message}`);
+        toast.error(err.message);
       } else {
-        setOutputText("An unknown error occurred.");
+        toast.error("An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -121,8 +126,17 @@ export default function TranslatorPage() {
             disabled={!inputText || isLoading}
             className="w-full md:w-auto"
           >
-            {isLoading ? "Translating..." : "Translate"}
-            {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Translating...
+              </>
+            ) : (
+              <>
+                Translate
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

@@ -19,20 +19,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ConverterPage() {
   const [file, setFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{
-    fileName: string;
-    downloadUrl: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setResult(null);
-    setError(null);
     if (event.target.files) {
       setFile(event.target.files[0]);
     }
@@ -40,13 +34,11 @@ export default function ConverterPage() {
 
   const handleConvert = async () => {
     if (!file || !outputFormat) {
-      setError("Please select a file and an output format.");
+      toast.error("Please select a file and an output format.");
       return;
     }
 
     setIsLoading(true);
-    setError(null);
-    setResult(null);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -81,13 +73,13 @@ export default function ConverterPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      setResult({ fileName, downloadUrl: "#" }); // Indicate success
+      toast.success("File converted successfully! Your download will begin shortly.");
 
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        toast.error(err.message);
       } else {
-        setError("An unknown error occurred.");
+        toast.error("An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -161,18 +153,6 @@ export default function ConverterPage() {
           </Button>
         </CardFooter>
       </Card>
-
-      {error && (
-        <div className="p-4 text-center text-red-500 bg-red-100 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {result && (
-        <div className="p-4 text-center text-green-500 bg-green-100 rounded-lg">
-          Conversion successful! Your download should start automatically.
-        </div>
-      )}
     </div>
   );
 }

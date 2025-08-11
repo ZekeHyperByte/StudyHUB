@@ -11,23 +11,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Download } from "lucide-react";
-import Link from "next/link";
+import { Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function YouTubeDownloaderPage() {
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{
-    fileName: string;
-    downloadUrl: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleDownload = async () => {
-    if (!url) return;
+    if (!url) {
+      toast.error("Please enter a YouTube URL.");
+      return;
+    }
     setIsLoading(true);
-    setError(null);
-    setResult(null);
 
     try {
       const response = await fetch("/api/youtube-downloader", {
@@ -44,12 +40,12 @@ export default function YouTubeDownloaderPage() {
         throw new Error(data.error || "Something went wrong");
       }
 
-      setResult(data);
+      toast.success("Download initiated! This might take a moment.");
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        toast.error(err.message);
       } else {
-        setError("An unknown error occurred.");
+        toast.error("An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -82,8 +78,17 @@ export default function YouTubeDownloaderPage() {
             disabled={!url || isLoading}
             className="w-full"
           >
-            {isLoading ? "Downloading..." : "Download"}
-            {!isLoading && <Download className="w-4 h-4 ml-2" />}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Download
+                <Download className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
           <p className="text-xs text-muted-foreground">
             Legal Disclaimer: By using this service, you agree that you are
@@ -92,30 +97,6 @@ export default function YouTubeDownloaderPage() {
           </p>
         </CardFooter>
       </Card>
-
-      {error && (
-        <div className="p-4 mt-4 text-center text-red-500 bg-red-100 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {result && (
-        <Card className="max-w-lg mt-4">
-          <CardHeader>
-            <CardTitle>Download Ready!</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Your download is ready.</p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild className="w-full">
-              <Link href={result.downloadUrl} download={result.fileName}>
-                Download {result.fileName}
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
     </div>
   );
 }

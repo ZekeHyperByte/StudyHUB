@@ -1,3 +1,4 @@
+import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
 
 export default function ToolsLayout({
@@ -6,9 +7,14 @@ export default function ToolsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex">
-      <Sidebar />
-      <main className="flex-1 p-8">{children}</main>
+    <div className="flex h-screen">
+      <div className="hidden md:flex">
+        <Sidebar />
+      </div>
+      <div className="flex flex-col flex-1">
+        <Header />
+        <main className="flex-1 p-4 overflow-y-auto md:p-8">{children}</main>
+      </div>
     </div>
   );
 }

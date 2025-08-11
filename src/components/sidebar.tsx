@@ -20,7 +20,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-64 flex-col border-r bg-gray-100 p-4 dark:bg-gray-800 md:flex">
+    <aside className="flex h-full w-full flex-col border-r bg-gray-100 p-4 dark:bg-gray-800 md:w-64">
       <div className="mb-8">
         <Link href="/" className="text-2xl font-bold">
           StudyHub

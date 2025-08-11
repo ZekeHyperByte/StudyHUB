@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SummarizerPage() {
   const [inputText, setInputText] = useState("");
@@ -19,7 +20,10 @@ export default function SummarizerPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSummarize = async () => {
-    if (!inputText) return;
+    if (!inputText) {
+      toast.error("Please enter some text to summarize.");
+      return;
+    }
     setIsLoading(true);
     setOutputText("");
 
@@ -39,11 +43,12 @@ export default function SummarizerPage() {
       }
 
       setOutputText(data.summarizedText);
+      toast.success("Text summarized successfully!");
     } catch (err) {
       if (err instanceof Error) {
-        setOutputText(`Error: ${err.message}`);
+        toast.error(err.message);
       } else {
-        setOutputText("An unknown error occurred.");
+        toast.error("An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -95,8 +100,17 @@ export default function SummarizerPage() {
             disabled={!inputText || isLoading}
             className="w-full md:w-auto"
           >
-            {isLoading ? "Summarizing..." : "Summarize"}
-            {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Summarizing...
+              </>
+            ) : (
+              <>
+                Summarize
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

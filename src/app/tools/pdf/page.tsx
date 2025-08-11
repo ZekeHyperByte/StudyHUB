@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // A shared component for file uploading
 const FileUploader = ({
@@ -57,18 +58,10 @@ export default function PdfToolsPage() {
   const [splitRanges, setSplitRanges] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{
-    fileName: string;
-    downloadUrl: string;
-    message: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (
     setter: React.Dispatch<React.SetStateAction<FileList | null>>
   ) => (files: FileList | null) => {
-    setResult(null);
-    setError(null);
     setter(files);
   };
 
@@ -78,13 +71,11 @@ export default function PdfToolsPage() {
     extraData?: Record<string, string>
   ) => {
     if (!files || files.length === 0) {
-      setError("Please select one or more files.");
+      toast.error("Please select one or more files.");
       return;
     }
 
     setIsLoading(true);
-    setError(null);
-    setResult(null);
 
     const formData = new FormData();
     formData.append("action", action);
@@ -127,13 +118,13 @@ export default function PdfToolsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      setResult({ fileName, downloadUrl: "#", message: "Success!" }); // Indicate success
+      toast.success("Action successful! Your download will begin shortly.");
 
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        toast.error(err.message);
       } else {
-        setError("An unknown error occurred.");
+        toast.error("An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -182,7 +173,14 @@ export default function PdfToolsPage() {
                 disabled={!mergeFiles || mergeFiles.length < 2 || isLoading}
                 onClick={() => handlePdfAction("merge", mergeFiles)}
               >
-                {isLoading ? "Merging..." : "Merge PDFs"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Merging...
+                  </>
+                ) : (
+                  "Merge PDFs"
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -221,7 +219,14 @@ export default function PdfToolsPage() {
                   handlePdfAction("split", splitFile, { ranges: splitRanges })
                 }
               >
-                {isLoading ? "Splitting..." : "Split PDF"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Splitting...
+                  </>
+                ) : (
+                  "Split PDF"
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -256,24 +261,19 @@ export default function PdfToolsPage() {
                 disabled={!compressFile || isLoading}
                 onClick={() => handlePdfAction("compress", compressFile)}
               >
-                {isLoading ? "Compressing..." : "Compress PDF"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Compressing...
+                  </>
+                ) : (
+                  "Compress PDF"
+                )}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {error && (
-        <div className="p-4 mt-4 text-center text-red-500 bg-red-100 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {result && (
-        <div className="p-4 mt-4 text-center text-green-500 bg-green-100 rounded-lg">
-          Action successful! Your download should start automatically.
-        </div>
-      )}
     </div>
   );
 }
